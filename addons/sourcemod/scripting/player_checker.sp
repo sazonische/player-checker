@@ -46,7 +46,7 @@ enum struct PlayerChecks_s {
 	float fOldPos[3]; // X, Y, Z
 	float fAfkCheckTime;
 	float fAntiCampCheckTime;
-} 
+}
 PlayerChecks_s g_aPlayerCheks[MAXPLAYERS + 1];
 
 int m_hActiveWeapon;
@@ -185,8 +185,8 @@ public void Event_PlayerTeam(Handle event, const char[] name, bool dontBroadcast
 public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcast) {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	if(IsValidClient(client) && IsPlayerAlive(client)) {
-		GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles);   
-		GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos); 
+		GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles);
+		GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos);
 		g_aPlayerCheks[client].fAntiCampCheckTime = 0.0;
 	}
 }
@@ -203,24 +203,24 @@ public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast
 void RoundStartPost() {
 	for(int client = 1; client <= MaxClients; client++) {
 		if(IsValidClient(client) && IsPlayerAlive(client)) {
-			GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles);   
-			GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos); 
+			GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles);
+			GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos);
 			g_aPlayerCheks[client].fAntiCampCheckTime = 0.0;
 		}
-	}	
+	}
 }
 
 public Action TimerCheckAfk(Handle timer, any data) {
 	float fGetAngles[3], fGetPos[3], fAfkCalcTime, fAntiCampCalcTime; int iClientButtons; bool iFakeAnglesGet;
 
-	for (int client = 1; client <= MaxClients; client++) { 
-		if (IsValidClient(client) && IsClientConnected(client)) {
+	for (int client = 1; client <= MaxClients; client++) {
+		if (IsValidClient(client)) {
 			if (IsPlayerAlive(client) && !(GetEntityFlags(client) & FL_FROZEN)) {
 				fGetAngles = g_aPlayerCheks[client].fOldAngles;
 				fGetPos = g_aPlayerCheks[client].fOldPos;
 
-				GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles); 
-				GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos); 
+				GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles);
+				GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos);
 
 				iClientButtons = GetClientButtons(client)
 				iFakeAnglesGet = (g_aPlayerCheks[client].fOldAngles[0] == fGetAngles[0] && g_aPlayerCheks[client].fOldAngles[1] == fGetAngles[1]) || (iClientButtons && !(iClientButtons & IN_MOVELEFT || iClientButtons & IN_MOVERIGHT));
@@ -233,7 +233,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 							if(GetPlayerCountEx(client, true, true, true) == 1)
 								FakeClientCommand(client, "explode"); // round end fix
 							ChangeClientTeam(client, CS_TEAM_SPECTATOR);
-							continue; 
+							continue;
 						} else {
 							CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "AFK Warning Spec", fAfkCalcTime);
 							EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
@@ -278,7 +278,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 					if(g_aPlayerCheks[client].fAfkCheckTime >= g_aConVarlist.fAfkKick) {
 						CPrintToChatAll("%s%t", g_aConVarlist.szTag, "AFK Announce Kick", client);
 						KickClientEx(client, "%t", "AFK Message Kick");
-						continue; 
+						continue;
 					} else {
 						CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "AFK Warning Kick", fAfkCalcTime);
 						EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
@@ -304,7 +304,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 					if(g_aPlayerCheks[client].iPingCheckFail >= g_aConVarlist.iPingChecks) {
 						CPrintToChatAll("%s%t", g_aConVarlist.szTag, "PING Announce Kick", client, g_aPlayerCheks[client].iPingClient, g_aConVarlist.iPingMaxPing);
 						KickClientEx(client, "%t", "PING Message Kick", g_aPlayerCheks[client].iPingClient, g_aConVarlist.iPingMaxPing);
-					}					
+					}
 				} else {
 					if(g_aPlayerCheks[client].iPingCheckFail > 0)
 						g_aPlayerCheks[client].iPingCheckFail--;
@@ -317,7 +317,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 stock int GetPlayerCountEx(int client, bool AliveOnly, bool teamOnly, bool noSpectators) {
 	int players;
 	for(int i = 1, t = !client ? 0 : GetClientTeam(client); i <= MaxClients; i++)
-		if(IsClientConnected(i) && IsClientInGame(i) && !IsFakeClient(i) && (!AliveOnly || IsPlayerAlive(i))) {
+		if(IsClientInGame(i) && !IsFakeClient(i) && (!AliveOnly || IsPlayerAlive(i))) {
 			if(teamOnly) {
 				if(GetClientTeam(i) == t) players++;
 			}
@@ -332,7 +332,7 @@ stock void PrepareSound(const char[] szSound) {
 		Format(buffer, sizeof(buffer), "sound*/%s", szSound[1]);
 		if(FileExists(buffer))
 			AddFileToDownloadsTable(buffer);
-		
+
 		AddToStringTable(FindStringTable("soundprecache"), szSound);
 	}
 }
