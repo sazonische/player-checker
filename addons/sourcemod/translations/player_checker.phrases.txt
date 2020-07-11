@@ -1,0 +1,74 @@
+﻿"Phrases"
+{
+	"AFK Warning Spec"
+	{
+		"#format"	"{1:2.f}"
+		"en"		"Warning: If you do not move in {darkred}{1}{default} seconds, you will be moved to spectate."
+		"ru"		"ВНИМАНИЕ: Начните двигаться, или через {darkred}{1}{default} сек. отправитесь в наблюдатели."
+		"fr"		"Attention: Si vous ne bougez pas dans les {darkred}{1}{default} prochaines secondes, vous deviendrez spectateur."
+	}
+
+	"AFK Warning Kick"
+	{
+		"#format"	"{1:2.f}"
+		"en"		"Warning: If you do not move in {darkred}{1}{default} seconds, you will be kicked."
+		"ru"		"ВНИМАНИЕ: Начните двигаться, или через {darkred}{1}{default} сек. будете отключены от сервера."
+		"fr"		"Attention: Si vous ne bougez pas dans les {darkred}{1}{default} prochaines secondes, vous serez kické."
+	}
+
+	"CAMP Warning Message"
+	{
+		"#format"	"{1:2.f}"
+		"en"		"Warning: Stop sitting at one point, or after {darkred}{1}{default} seconds, you will be punished."
+		"ru"		"ВНИМАНИЕ: Начните двигаться, или через {darkred}{1}{default} сек. будете наказаны."
+		"fr"		"Attention: Arrêtez de vous asseoir sur un point, ou après {darkred}{1}{default} secondes, vous serez punis."
+	}	
+
+	"AFK Announce Spec"
+	{
+		"#format"	"{1:N}"
+		"en"		"{purple}{1}{default} was moved to spectate for being AFK too long."
+		"ru"		"{purple}{1}{default} был перемещен в наблюдатели из-за длительного бездействия."
+		"fr"		"{purple}{1}{default} est devenu spectateur pour avoir été AFK trop longtemps."
+	}
+
+	"AFK Announce Kick"
+	{
+		"#format"	"{1:N}"
+		"en"		"{purple}{1}{default} was kicked for being AFK too long."
+		"ru"		"{purple}{1}{default} был отключен от сервера из-за длительного бездействия."
+		"fr"		"{purple}{1}{default} a été kické pour avoir été AFK trop longtemps."
+	}
+	
+	"PING Announce Kick"
+	{
+		"#format"	"{1:N},{2:i},{3:i}"
+		"en"		"{purple}{1}{default} have beed kicked. Ping: {darkred}{2}{default}, max: {lightgreen}{3}{default}"
+		"ru"		"{purple}{1}{default} кикнут. Пинг: {darkred}{2}{default}, допустимое значение: {lightgreen}{3}{default}"
+		"fr"		"{purple}{1}{default} a été kické. Ping: {darkred}{2}{default}, max: {lightgreen}{3}{default}"
+	}
+	
+	"PING Message Kick"
+	{
+		"#format"	"{1:i},{2:i}"
+		"en"		"Your ping is too high: {1}, max: {2}"
+		"ru"		"Ваш пинг слишком большой: {1}, допустимое значение: {2}"
+		"fr"		"Votre ping est trop élevé: {1}, max: {2}"
+	}
+	
+	"AFK Message Kick"
+	{
+		"en"		"You were kicked for being AFK too long."
+		"ru"		"Вы слишком долго бездействовали!"
+		"fr"		"Vous avez été kické pour avoir été AFK trop longtemps."
+	}
+
+	"CAMP Fade Punished Message"
+	{
+		"#format"	"{1:2.f}"
+		"ru"		"ВНИМАНИЕ: Продвиньтесь на {blue}{1}{default} юнитов!"
+		"fr"		"Attention: Avancez de {blue}{1}{default} unités."
+		"en"		"Warning: Advance by {blue}{1}{default} units."
+	}
+}
+
