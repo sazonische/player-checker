@@ -16,7 +16,7 @@ enum struct ConVarlist {
 	bool bPingFlagEnable;
 	bool bAntiCampFlagEnable;
 	bool bAntiCampInSpeed
-	bool bAntiCampBombPlanted;
+	bool bAntiCampMatchmaking;
 	bool bAntiCampUncheckKnife;
 	int iAfkFlag;
 	int iPingFlag;
@@ -40,11 +40,11 @@ enum struct ConVarlist {
 ConVarlist g_aConVarlist;
 
 enum struct PlayerChecks_s {
+	int iPingClient;
+	int iPingCheckFail;
 	float fOldAngles[3]; // Roll, Yaw, Pitch
 	float fOldPos[3]; // X, Y, Z
 	float fAfkCheckTime;
-	int iPingClient;
-	int iPingCheckFail;
 	float fAntiCampCheckTime;
 } 
 PlayerChecks_s g_aPlayerCheks[MAXPLAYERS + 1];
@@ -56,7 +56,7 @@ public Plugin myinfo =  {
 	name = "Player checker afk/ping/camp (mmcs.pro)",
 	author = "SAZONISCHE",
 	description = "",
-	version = "3.1",
+	version = "3.2",
 	url = "mmcs.pro",
 };
 
@@ -119,8 +119,8 @@ public void OnPluginStart() {
 	CVarChange_AntiCampFlag(CVAR, NULL_STRING, NULL_STRING);
 	(CVAR = CreateConVar("sm_pc_anticamp_in_speed", "0", "Set 0 to disable check shift.", FCVAR_NOTIFY, true, 0.0, true, 1.0)).AddChangeHook(CVarChange_AntiCampInSpeed);
 	CVarChange_AntiCampInSpeed(CVAR, NULL_STRING, NULL_STRING);
-	(CVAR = CreateConVar("sm_pc_anticamp_bomb_planted", "1", "Set 0 to disable check bomb planted.", FCVAR_NOTIFY, true, 0.0, true, 1.0)).AddChangeHook(CVarChange_AntiCampBombPlanted);
-	CVarChange_AntiCampBombPlanted(CVAR, NULL_STRING, NULL_STRING);
+	(CVAR = CreateConVar("sm_pc_anticamp_matchmaking", "1", "Set 0 to enable checks of all commands permanently.", FCVAR_NOTIFY, true, 0.0, true, 1.0)).AddChangeHook(CVarChange_AntiCampMatchmaking);
+	CVarChange_AntiCampMatchmaking(CVAR, NULL_STRING, NULL_STRING);
 	(CVAR = CreateConVar("sm_pc_anticamp_check_knife", "1", "Set it to 0 to disable checking the knife in the player hands.", FCVAR_NOTIFY, true, 0.0, true, 1.0)).AddChangeHook(CVarChange_AntiCampUncheckKnife);
 	CVarChange_AntiCampUncheckKnife(CVAR, NULL_STRING, NULL_STRING);
 
@@ -161,7 +161,7 @@ public void CVarChange_AntiCampPunishment(ConVar convar, const char[] oldValue, 
 public void CVarChange_AntiCampFlagEnable(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampFlagEnable = convar.BoolValue;}
 public void CVarChange_AntiCampFlag(ConVar convar, const char[] oldValue, const char[] newValue) {char szBuff[16]; convar.GetString(szBuff, sizeof(szBuff)); g_aConVarlist.iAntiCampFlag = ReadFlagString(szBuff);}
 public void CVarChange_AntiCampInSpeed(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampInSpeed = convar.BoolValue;}
-public void CVarChange_AntiCampBombPlanted(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampBombPlanted = convar.BoolValue;}
+public void CVarChange_AntiCampMatchmaking(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampMatchmaking = convar.BoolValue;}
 public void CVarChange_AntiCampUncheckKnife(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampUncheckKnife = convar.BoolValue;}
 
 public void OnMapStart() {
@@ -244,7 +244,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 					g_aPlayerCheks[client].fAfkCheckTime = 0.0;
 				}
 
-				if (g_aConVarlist.bAntiCampEnable && (!g_aConVarlist.bAntiCampBombPlanted || !bBombPlanted) && g_aPlayerCheks[client].fAfkCheckTime == 0.0 && (!g_aConVarlist.bAntiCampInSpeed || !(iClientButtons & IN_SPEED)) && (!g_aConVarlist.bAntiCampFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iAntiCampFlag))) {
+				if (g_aConVarlist.bAntiCampEnable && g_aPlayerCheks[client].fAfkCheckTime == 0.0 && (!g_aConVarlist.bAntiCampInSpeed || !(iClientButtons & IN_SPEED)) && (!g_aConVarlist.bAntiCampFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iAntiCampFlag)) && (!g_aConVarlist.bAntiCampMatchmaking || (GetClientTeam(client) == (bBombPlanted ? CS_TEAM_CT : CS_TEAM_T)))) {
 					int iActWeapon;
 					if ((GetVectorDistance(g_aPlayerCheks[client].fOldPos, fGetPos) < g_aConVarlist.fAntiCampRadius) && (!g_aConVarlist.bAntiCampUncheckKnife || (IsValidEntity(iActWeapon = GetEntDataEnt2(client, m_hActiveWeapon)) && !IsWeaponKnife(iActWeapon)))) {
 						g_aPlayerCheks[client].fAntiCampCheckTime += g_aConVarlist.fCalcTime;
