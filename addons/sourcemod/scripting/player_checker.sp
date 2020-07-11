@@ -214,7 +214,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 	float fGetAngles[3], fGetPos[3], fAfkCalcTime, fAntiCampCalcTime; int iClientButtons; bool iFakeAnglesGet;
 
 	for (int client = 1; client <= MaxClients; client++) {
-		if (IsValidClient(client) && IsClientConnected(client)) {
+		if (IsValidClient(client)) {
 			if (IsPlayerAlive(client) && !(GetEntityFlags(client) & FL_FROZEN)) {
 				fGetAngles = g_aPlayerCheks[client].fOldAngles;
 				fGetPos = g_aPlayerCheks[client].fOldPos;
@@ -317,7 +317,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 stock int GetPlayerCountEx(int client, bool AliveOnly, bool teamOnly, bool noSpectators) {
 	int players;
 	for(int i = 1, t = !client ? 0 : GetClientTeam(client); i <= MaxClients; i++)
-		if(IsClientConnected(i) && IsClientInGame(i) && !IsFakeClient(i) && (!AliveOnly || IsPlayerAlive(i))) {
+		if(IsClientInGame(i) && !IsFakeClient(i) && (!AliveOnly || IsPlayerAlive(i))) {
 			if(teamOnly) {
 				if(GetClientTeam(i) == t) players++;
 			}
