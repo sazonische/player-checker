@@ -25,8 +25,9 @@ enum struct ConVarlist {
 	int iPingChecks;
 	int iPingMaxPing;
 	int iAfkFlagEnable;
-	int iAntiCampMinhealth;
+	int iAntiCampMinHealth;
 	int iAntiCampPunishment;
+	int iAntiCampSlapHealth;
 	float fAfkMove;
 	float fAfkKick;
 	float fCalcTime;
@@ -49,8 +50,13 @@ enum struct PlayerChecks_s {
 }
 PlayerChecks_s g_aPlayerCheks[MAXPLAYERS + 1];
 
-int m_hActiveWeapon;
-bool bBombPlanted;
+enum struct OtherVals {
+	int m_hActiveWeapon;
+	bool bSwapCampTeam;
+	bool bMapHasBombTarget;
+	bool bMapHasRescueZone;
+}
+OtherVals g_aOtherVals;
 
 public Plugin myinfo =  {
 	name = "Player checker afk/ping/camp (mmcs.pro)",
@@ -65,8 +71,8 @@ public void OnPluginStart() {
 	if (GetEngineVersion() != Engine_CSS && GetEngineVersion() != Engine_CSGO)
 		SetFailState("This plugin is for CSGO/CSS only.");
 
-	m_hActiveWeapon = FindSendPropInfo("CBasePlayer", "m_hActiveWeapon")
-	if (m_hActiveWeapon == -1)
+	g_aOtherVals.m_hActiveWeapon = FindSendPropInfo("CBasePlayer", "m_hActiveWeapon")
+	if (g_aOtherVals.m_hActiveWeapon == -1)
 		SetFailState("Failed to obtain offset: \"m_hActiveWeapon\"!");
 
 	ConVar CVAR;
@@ -109,9 +115,9 @@ public void OnPluginStart() {
 	CVarChange_AntiCampRadius(CVAR, NULL_STRING, NULL_STRING);
 	(CVAR = CreateConVar("sm_pc_anticamp_interval", "30.0", "The amount of times a suspected camper is checked for", FCVAR_NOTIFY, true, 2.0)).AddChangeHook(CVarChange_AntiCampInterval);
 	CVarChange_AntiCampInterval(CVAR, NULL_STRING, NULL_STRING);
-	(CVAR = CreateConVar("sm_pc_anticamp_minhealth", "20", "The amount of health that should not be penalized. Set to 0 to ignore the parameter.", FCVAR_NOTIFY, true, 0.0, true, 100.0)).AddChangeHook(CVarChange_AntiCampMinhealth);
-	CVarChange_AntiCampMinhealth(CVAR, NULL_STRING, NULL_STRING);
-	(CVAR = CreateConVar("sm_pc_anticamp_punishment_type", "0", "The camp punishment type. (0 = Fade, 1 = Kill, 2 = Slay)", FCVAR_NOTIFY, true, 0.0, true, 2.0)).AddChangeHook(CVarChange_AntiCampPunishment);
+	(CVAR = CreateConVar("sm_pc_anticamp_minhealth", "10", "The amount of health that should not be penalized. Set to 0 to ignore the parameter.", FCVAR_NOTIFY, true, 0.0, true, 100.0)).AddChangeHook(CVarChange_AntiCampMinHealth);
+	CVarChange_AntiCampMinHealth(CVAR, NULL_STRING, NULL_STRING);
+	(CVAR = CreateConVar("sm_pc_anticamp_punishment_type", "0", "The camp punishment type. (0 = Fade, 1 = Kill, 2 = Slap)", FCVAR_NOTIFY, true, 0.0, true, 2.0)).AddChangeHook(CVarChange_AntiCampPunishment);
 	CVarChange_AntiCampPunishment(CVAR, NULL_STRING, NULL_STRING);
 	(CVAR = CreateConVar("sm_pc_anticamp_immune_enable", "1", "Set 0 to disable immunity anticamp.", FCVAR_NOTIFY, true, 0.0, true, 1.0)).AddChangeHook(CVarChange_AntiCampFlagEnable);
 	CVarChange_AntiCampFlagEnable(CVAR, NULL_STRING, NULL_STRING);
@@ -123,6 +129,8 @@ public void OnPluginStart() {
 	CVarChange_AntiCampMatchmaking(CVAR, NULL_STRING, NULL_STRING);
 	(CVAR = CreateConVar("sm_pc_anticamp_check_knife", "1", "Set it to 0 to disable checking the knife in the player hands.", FCVAR_NOTIFY, true, 0.0, true, 1.0)).AddChangeHook(CVarChange_AntiCampUncheckKnife);
 	CVarChange_AntiCampUncheckKnife(CVAR, NULL_STRING, NULL_STRING);
+	(CVAR = CreateConVar("sm_pc_anticamp_slaphealth", "5", "How much damage to inflict when punishing through a slap. Set to 0 to ignore the parameter.", FCVAR_NOTIFY, true, 0.0, true, 1000.0)).AddChangeHook(CVarChange_AntiCampSlapHealth);
+	CVarChange_AntiCampSlapHealth(CVAR, NULL_STRING, NULL_STRING);
 
 	LoadTranslations("player_checker.phrases");
 	AutoExecConfig(true, "player_checker");
@@ -156,17 +164,20 @@ public void CVarChange_PingFlag(ConVar convar, const char[] oldValue, const char
 public void CVarChange_AntiCampEnable(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampEnable = convar.BoolValue;}
 public void CVarChange_AntiCampRadius(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.fAntiCampRadius = convar.FloatValue;}
 public void CVarChange_AntiCampInterval(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.fAntiCampInterval = convar.FloatValue;}
-public void CVarChange_AntiCampMinhealth(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.iAntiCampMinhealth = convar.IntValue;}
+public void CVarChange_AntiCampMinHealth(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.iAntiCampMinHealth = convar.IntValue;}
 public void CVarChange_AntiCampPunishment(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.iAntiCampPunishment = convar.IntValue;}
 public void CVarChange_AntiCampFlagEnable(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampFlagEnable = convar.BoolValue;}
 public void CVarChange_AntiCampFlag(ConVar convar, const char[] oldValue, const char[] newValue) {char szBuff[16]; convar.GetString(szBuff, sizeof(szBuff)); g_aConVarlist.iAntiCampFlag = ReadFlagString(szBuff);}
 public void CVarChange_AntiCampInSpeed(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampInSpeed = convar.BoolValue;}
 public void CVarChange_AntiCampMatchmaking(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampMatchmaking = convar.BoolValue;}
 public void CVarChange_AntiCampUncheckKnife(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bAntiCampUncheckKnife = convar.BoolValue;}
+public void CVarChange_AntiCampSlapHealth(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.iAntiCampSlapHealth = convar.IntValue;}
 
 public void OnMapStart() {
 	PrepareSound(g_aConVarlist.szSoundWarn);
 	CreateTimer(g_aConVarlist.fCalcTime, TimerCheckAfk, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+	g_aOtherVals.bMapHasBombTarget = view_as<bool>(GameRules_GetProp("m_bMapHasBombTarget"));
+	g_aOtherVals.bMapHasRescueZone = view_as<bool>(GameRules_GetProp("m_bMapHasRescueZone"));
 }
 
 public void OnClientPostAdminCheck(int client) {
@@ -192,13 +203,21 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 }
 
 public void Event_BombPlanted(Handle event, const char[] name, bool dontBroadcast) {
-	bBombPlanted = true;
+	g_aOtherVals.bSwapCampTeam = true;
 }
 
 public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast) {
-	bBombPlanted = false;
-	RequestFrame(RoundStartPost)
+	RequestFrame(RoundStartPost);
+
+	if(g_aOtherVals.bMapHasBombTarget) 
+		g_aOtherVals.bSwapCampTeam = false;
+	else if(g_aOtherVals.bMapHasRescueZone)
+		g_aOtherVals.bSwapCampTeam = true;
+	else 
+		g_aConVarlist.bAntiCampMatchmaking = false;
 }
+
+
 
 void RoundStartPost() {
 	for(int client = 1; client <= MaxClients; client++) {
@@ -244,21 +263,21 @@ public Action TimerCheckAfk(Handle timer, any data) {
 					g_aPlayerCheks[client].fAfkCheckTime = 0.0;
 				}
 
-				if (g_aConVarlist.bAntiCampEnable && g_aPlayerCheks[client].fAfkCheckTime == 0.0 && (!g_aConVarlist.bAntiCampInSpeed || !(iClientButtons & IN_SPEED)) && (!g_aConVarlist.bAntiCampFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iAntiCampFlag)) && (!g_aConVarlist.bAntiCampMatchmaking || (GetClientTeam(client) == (bBombPlanted ? CS_TEAM_CT : CS_TEAM_T)))) {
+				if (g_aConVarlist.bAntiCampEnable && g_aPlayerCheks[client].fAfkCheckTime == 0.0 && (!g_aConVarlist.bAntiCampInSpeed || !(iClientButtons & IN_SPEED)) && (!g_aConVarlist.bAntiCampFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iAntiCampFlag)) && (!g_aConVarlist.bAntiCampMatchmaking || (GetClientTeam(client) == (g_aOtherVals.bSwapCampTeam ? CS_TEAM_CT : CS_TEAM_T)))) {
 					int iActWeapon;
-					if ((GetVectorDistance(g_aPlayerCheks[client].fOldPos, fGetPos) < g_aConVarlist.fAntiCampRadius) && (!g_aConVarlist.bAntiCampUncheckKnife || (IsValidEntity(iActWeapon = GetEntDataEnt2(client, m_hActiveWeapon)) && !IsWeaponKnife(iActWeapon)))) {
+					if ((GetVectorDistance(g_aPlayerCheks[client].fOldPos, fGetPos) < g_aConVarlist.fAntiCampRadius) && (!g_aConVarlist.bAntiCampUncheckKnife || (IsValidEntity(iActWeapon = GetEntDataEnt2(client, g_aOtherVals.m_hActiveWeapon)) && !IsWeaponKnife(iActWeapon)))) {
 						g_aPlayerCheks[client].fAntiCampCheckTime += g_aConVarlist.fCalcTime;
 						fAntiCampCalcTime = g_aConVarlist.fAntiCampInterval - g_aPlayerCheks[client].fAntiCampCheckTime;
 						if(fAntiCampCalcTime <= g_aConVarlist.fCalcTimeWarn) {
 							if(g_aPlayerCheks[client].fAntiCampCheckTime >= g_aConVarlist.fAntiCampInterval) {
-								if(GetClientHealth(client) >= g_aConVarlist.iAntiCampMinhealth) {
+								if(GetClientHealth(client) >= g_aConVarlist.iAntiCampMinHealth) {
 									switch(g_aConVarlist.iAntiCampPunishment) {
 										case 0: {
 											Client_ScreenFade(client, RoundToFloor(g_aConVarlist.fCalcTime*1000), FFADE_IN, 0, 66, 105, 158, 210);
 											CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "CAMP Fade Punished Message", g_aConVarlist.fAntiCampRadius);
 										}
 										case 1:	ForcePlayerSuicide(client);
-										case 2:	SlapPlayer(client, 0, true);
+										case 2:	SlapPlayer(client, g_aConVarlist.iAntiCampSlapHealth, true);
 									}
 								}
 							} else {
