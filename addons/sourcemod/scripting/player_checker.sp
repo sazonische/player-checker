@@ -62,12 +62,11 @@ public Plugin myinfo =  {
 	name = "Player checker afk/ping/camp (mmcs.pro)",
 	author = "SAZONISCHE",
 	description = "",
-	version = "3.3",
+	version = "3.4",
 	url = "mmcs.pro",
 };
 
 public void OnPluginStart() {
-	// Plugin only for csgo
 	if (GetEngineVersion() != Engine_CSS && GetEngineVersion() != Engine_CSGO)
 		SetFailState("This plugin is for CSGO/CSS only.");
 
@@ -242,7 +241,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 				GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos);
 
 				iClientButtons = GetClientButtons(client)
-				iFakeAnglesGet = (g_aPlayerCheks[client].fOldAngles[0] == fGetAngles[0] && g_aPlayerCheks[client].fOldAngles[1] == fGetAngles[1]) || (iClientButtons && !(iClientButtons & IN_MOVELEFT || iClientButtons & IN_MOVERIGHT));
+				iFakeAnglesGet = (g_aPlayerCheks[client].fOldAngles[0] == fGetAngles[0] && g_aPlayerCheks[client].fOldAngles[1] == fGetAngles[1]) || (iClientButtons & (IN_LEFT|IN_RIGHT) != 0);
 				if (iFakeAnglesGet && (GetVectorDistance(g_aPlayerCheks[client].fOldPos, fGetPos) < g_aConVarlist.fAfkOriginThreshold) && (g_aConVarlist.iAfkFlagEnable != 2 || !(GetUserFlagBits(client) & g_aConVarlist.iAfkFlag))) {
 					g_aPlayerCheks[client].fAfkCheckTime += g_aConVarlist.fCalcTime;
 					fAfkCalcTime = g_aConVarlist.fAfkMove - g_aPlayerCheks[client].fAfkCheckTime;

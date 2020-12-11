@@ -20,7 +20,7 @@
 	{
 		"#format"	"{1:2.f}"
 		"en"		"Warning: Stop sitting at one point, or after {darkred}{1}{default} seconds, you will be punished."
-		"ru"		"ВНИМАНИЕ: Начните двигаться, или через {darkred}{1}{default} сек. будете наказаны."
+		"ru"		"ВНИМАНИЕ: Перестаньте сидеть в одной точке, или через {darkred}{1}{default} сек. будете наказаны."
 		"fr"		"Attention: Arrêtez de vous asseoir sur un point, ou après {darkred}{1}{default} secondes, vous serez punis."
 	}	
 
