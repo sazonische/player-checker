@@ -11,6 +11,7 @@
 #define FFADE_PURGE			0x0010		// Purges all other fades, replacing them with this one
 
 enum struct ConVarlist {
+	bool iAfkKillEnable
 	bool bPingCheckEnable;
 	bool bAntiCampEnable;
 	bool bPingFlagEnable;
@@ -62,7 +63,7 @@ public Plugin myinfo =  {
 	name = "Player checker afk/ping/camp (mmcs.pro)",
 	author = "SAZONISCHE",
 	description = "",
-	version = "3.4",
+	version = "3.5",
 	url = "mmcs.pro",
 };
 
@@ -94,6 +95,8 @@ public void OnPluginStart() {
 	CVarChange_AfkKickMin(CVAR, NULL_STRING, NULL_STRING);
 	(CVAR = CreateConVar("sm_pc_afk_immune_enable", "2", "Immunity afk: 1 kick, 2 move and kick. Set 0 to disable.", FCVAR_NOTIFY, true, 0.0, true, 2.0)).AddChangeHook(CVarChange_AfkFlagEnable);
 	CVarChange_AfkFlagEnable(CVAR, NULL_STRING, NULL_STRING);
+	(CVAR = CreateConVar("sm_pc_afk_force_kill", "0", "Kill all afk: 1, Only last player kill: 0.", FCVAR_NOTIFY, true, 0.0, true, 1.0)).AddChangeHook(CVarChange_AfkKillEnable);
+	CVarChange_AfkKillEnable(CVAR, NULL_STRING, NULL_STRING);
 	(CVAR = CreateConVar("sm_pc_afk_immune_flag", "p", "Flag for afk immunity (example: 'pza')", FCVAR_NOTIFY)).AddChangeHook(CVarChange_AfkFlag);
 	CVarChange_AfkFlag(CVAR, NULL_STRING, NULL_STRING);
 
@@ -152,6 +155,7 @@ public void CVarChange_AfkOriginThreshold(ConVar convar, const char[] oldValue, 
 public void CVarChange_AfkKick(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.fAfkKick = convar.FloatValue;}
 public void CVarChange_AfkKickMin(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.iAfkKickMin = convar.IntValue;}
 public void CVarChange_AfkFlagEnable(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.iAfkFlagEnable = convar.IntValue;}
+public void CVarChange_AfkKillEnable(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.iAfkKillEnable = convar.BoolValue;}
 public void CVarChange_AfkFlag(ConVar convar, const char[] oldValue, const char[] newValue) {char szBuff[16]; convar.GetString(szBuff, sizeof(szBuff)); g_aConVarlist.iAfkFlag = ReadFlagString(szBuff);}
 
 public void CVarChange_PingCheckEnable(ConVar convar, const char[] oldValue, const char[] newValue) {g_aConVarlist.bPingCheckEnable = convar.BoolValue;}
@@ -248,7 +252,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 					if(fAfkCalcTime <= g_aConVarlist.fCalcTimeWarn) {
 						if(g_aPlayerCheks[client].fAfkCheckTime >= g_aConVarlist.fAfkMove) {
 							CPrintToChatAll("%s%t", g_aConVarlist.szTag, "AFK Announce Spec", client);
-							if(GetPlayerCountEx(client, true, true, true) == 1)
+							if(g_aConVarlist.iAfkKillEnable || GetPlayerCountEx(client, true, true, true) == 1)
 								FakeClientCommand(client, "explode"); // round end fix
 							ChangeClientTeam(client, CS_TEAM_SPECTATOR);
 							continue;
