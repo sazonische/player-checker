@@ -237,7 +237,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 
 	for (int client = 1; client <= MaxClients; client++) {
 		if (IsValidClient(client)) {
-			if (IsPlayerAlive(client) && !(GetEntityFlags(client) & FL_FROZEN)) {
+			if (IsPlayerAlive(client) && !(GetEntityFlags(client) & FL_FROZEN) && !GameRules_GetProp("m_bFreezePeriod")) {
 				fGetAngles = g_aPlayerCheks[client].fOldAngles;
 				fGetPos = g_aPlayerCheks[client].fOldPos;
 
@@ -255,7 +255,6 @@ public Action TimerCheckAfk(Handle timer, any data) {
 							if(g_aConVarlist.iAfkKillEnable || GetPlayerCountEx(client, true, true, true) == 1)
 								FakeClientCommand(client, "explode"); // round end fix
 							ChangeClientTeam(client, CS_TEAM_SPECTATOR);
-							continue;
 						} else {
 							CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "AFK Warning Spec", fAfkCalcTime);
 							EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
@@ -300,7 +299,6 @@ public Action TimerCheckAfk(Handle timer, any data) {
 					if(g_aPlayerCheks[client].fAfkCheckTime >= g_aConVarlist.fAfkKick) {
 						CPrintToChatAll("%s%t", g_aConVarlist.szTag, "AFK Announce Kick", client);
 						KickClientEx(client, "%t", "AFK Message Kick");
-						continue;
 					} else {
 						CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "AFK Warning Kick", fAfkCalcTime);
 						EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
