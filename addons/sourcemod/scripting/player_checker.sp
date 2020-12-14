@@ -68,7 +68,7 @@ public Plugin myinfo =  {
 };
 
 public void OnPluginStart() {
-	iEngineVersion = GetEngineVersion();
+	EngineVersion iEngineVersion = GetEngineVersion();
 	switch (iEngineVersion) {
 		case Engine_CSGO: LogMessage("Player checker Init CS:GO");
 		case Engine_CSS: LogMessage("Player checker Init CSS");
