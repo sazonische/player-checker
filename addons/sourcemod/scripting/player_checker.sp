@@ -68,8 +68,13 @@ public Plugin myinfo =  {
 };
 
 public void OnPluginStart() {
-	if (GetEngineVersion() != Engine_CSS && GetEngineVersion() != Engine_CSGO)
-		SetFailState("This plugin is for CSGO/CSS only.");
+	iEngineVersion = GetEngineVersion();
+	switch (iEngineVersion) {
+		case Engine_CSGO: LogMessage("Player checker Init CS:GO");
+		case Engine_CSS: LogMessage("Player checker Init CSS");
+		case Engine_SourceSDK2006: LogMessage("Player checker Init SourceSDK2006");
+		default: SetFailState("This plugin is for CSGO/CSS only.");
+	}
 
 	g_aOtherVals.m_hActiveWeapon = FindSendPropInfo("CBasePlayer", "m_hActiveWeapon")
 	if (g_aOtherVals.m_hActiveWeapon == -1)
@@ -138,7 +143,7 @@ public void OnPluginStart() {
 	AutoExecConfig(true, "player_checker");
 
 	HookEvent("player_spawn", Event_PlayerSpawn);
-	if(GetEngineVersion() == Engine_CSGO)
+	if(iEngineVersion == Engine_CSGO)
 		HookEvent("player_spawned", Event_PlayerSpawn); // warmup fix
 	HookEvent("player_team", Event_PlayerTeam);
 	HookEvent("round_start", Event_RoundStart);
