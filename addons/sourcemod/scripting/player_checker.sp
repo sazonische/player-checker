@@ -198,6 +198,11 @@ public void Event_PlayerTeam(Handle event, const char[] name, bool dontBroadcast
 
 public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcast) {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if(IsValidClient(client) && IsPlayerAlive(client))
+		CreateTimer(0.100, SpawnTimerInfo, client, TIMER_FLAG_NO_MAPCHANGE);
+}
+
+public Action SpawnTimerInfo(Handle timer, any client) {
 	if(IsValidClient(client) && IsPlayerAlive(client)) {
 		GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles);
 		GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos);
@@ -220,8 +225,6 @@ public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast
 		g_aConVarlist.bAntiCampMatchmaking = false;
 }
 
-
-
 void RoundStartPost() {
 	for(int client = 1; client <= MaxClients; client++) {
 		if(IsValidClient(client) && IsPlayerAlive(client)) {
@@ -237,7 +240,7 @@ public Action TimerCheckAfk(Handle timer, any data) {
 
 	for (int client = 1; client <= MaxClients; client++) {
 		if (IsValidClient(client)) {
-			if (IsPlayerAlive(client) && !(GetEntityFlags(client) & FL_FROZEN) && !GameRules_GetProp("m_bFreezePeriod")) {
+			if (IsPlayerAlive(client) && !(GetEntityFlags(client) & FL_FROZEN) && (GetEntityFlags(client) & FL_ONGROUND) && !GameRules_GetProp("m_bFreezePeriod")) {
 				fGetAngles = g_aPlayerCheks[client].fOldAngles;
 				fGetPos = g_aPlayerCheks[client].fOldPos;
 
