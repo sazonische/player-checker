@@ -242,101 +242,99 @@ void RoundStartPost() {
 
 public Action TimerCheckAfk(Handle timer, any data) {
 	float fGetAngles[3], fGetPos[3], fAfkCalcTime, fAntiCampCalcTime; int iClientButtons; bool iFakeAnglesGet;
-
+	
 	for (int client = 1; client <= MaxClients; client++) {
-		if (IsValidClient(client)) {
-			if (IsPlayerAlive(client) && !(GetEntityFlags(client) & FL_FROZEN) && (GetEntityFlags(client) & FL_ONGROUND) && !GameRules_GetProp("m_bFreezePeriod")) {
-				fGetAngles = g_aPlayerCheks[client].fOldAngles;
-				fGetPos = g_aPlayerCheks[client].fOldPos;
+		if (IsValidClient(client) && IsPlayerAlive(client) && !(GetEntityFlags(client) & FL_FROZEN) && (GetEntityFlags(client) & FL_ONGROUND) && !GameRules_GetProp("m_bFreezePeriod")) {
+			fGetAngles = g_aPlayerCheks[client].fOldAngles;
+			fGetPos = g_aPlayerCheks[client].fOldPos;
 
-				GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles);
-				GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos);
+			GetClientEyeAngles(client, g_aPlayerCheks[client].fOldAngles);
+			GetClientAbsOrigin(client, g_aPlayerCheks[client].fOldPos);
 
-				iClientButtons = GetClientButtons(client)
-				iFakeAnglesGet = (g_aPlayerCheks[client].fOldAngles[0] == fGetAngles[0] && g_aPlayerCheks[client].fOldAngles[1] == fGetAngles[1]) || (iClientButtons & (IN_LEFT|IN_RIGHT) != 0);
-				if (iFakeAnglesGet && (GetVectorDistance(g_aPlayerCheks[client].fOldPos, fGetPos) < g_aConVarlist.fAfkOriginThreshold) && (g_aConVarlist.iAfkFlagEnable != 2 || !(GetUserFlagBits(client) & g_aConVarlist.iAfkFlag))) {
-					g_aPlayerCheks[client].fAfkCheckTime += g_aConVarlist.fCalcTime;
-					fAfkCalcTime = g_aConVarlist.fAfkMove - g_aPlayerCheks[client].fAfkCheckTime;
-					if(fAfkCalcTime <= g_aConVarlist.fCalcTimeWarn) {
-						if(g_aPlayerCheks[client].fAfkCheckTime >= g_aConVarlist.fAfkMove) {
-							CPrintToChatAll("%s%t", g_aConVarlist.szTag, "AFK Announce Spec", client);
-							if(g_aConVarlist.iAfkKillEnable || GetPlayerCountEx(client, true, true, true) == 1)
-								FakeClientCommand(client, "explode"); // round end fix
-							ChangeClientTeam(client, CS_TEAM_SPECTATOR);
-						} else {
-							CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "AFK Warning Spec", fAfkCalcTime);
-							EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
-							g_aPlayerCheks[client].fAntiCampCheckTime = 0.0;
-						}
-					}
-				} else {
-					g_aPlayerCheks[client].fAfkCheckTime = 0.0;
-				}
-
-				if (g_aConVarlist.bAntiCampEnable && g_aPlayerCheks[client].fAfkCheckTime == 0.0 && (!g_aConVarlist.bAntiCampInSpeed || !(iClientButtons & IN_SPEED)) && (!g_aConVarlist.bAntiCampFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iAntiCampFlag)) && (!g_aConVarlist.bAntiCampMatchmaking || (GetClientTeam(client) == (g_aOtherVals.bSwapCampTeam ? CS_TEAM_CT : CS_TEAM_T)))) {
-					int iActWeapon;
-					if ((GetVectorDistance(g_aPlayerCheks[client].fOldPos, fGetPos) < g_aConVarlist.fAntiCampRadius) && (!g_aConVarlist.bAntiCampUncheckKnife || (IsValidEntity(iActWeapon = GetEntDataEnt2(client, g_aOtherVals.m_hActiveWeapon)) && !IsWeaponKnife(iActWeapon)))) {
-						g_aPlayerCheks[client].fAntiCampCheckTime += g_aConVarlist.fCalcTime;
-						fAntiCampCalcTime = g_aConVarlist.fAntiCampInterval - g_aPlayerCheks[client].fAntiCampCheckTime;
-						if(fAntiCampCalcTime <= g_aConVarlist.fCalcTimeWarn) {
-							if(g_aPlayerCheks[client].fAntiCampCheckTime >= g_aConVarlist.fAntiCampInterval) {
-								if(GetClientHealth(client) >= g_aConVarlist.iAntiCampMinHealth) {
-									switch(g_aConVarlist.iAntiCampPunishment) {
-										case 0: {
-											Client_ScreenFade(client, RoundToFloor(g_aConVarlist.fCalcTime*1000), FFADE_IN, 0, 66, 105, 158, 210);
-											CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "CAMP Fade Punished Message", g_aConVarlist.fAntiCampRadius);
-										}
-										case 1:	ForcePlayerSuicide(client);
-										case 2:	SlapPlayer(client, g_aConVarlist.iAntiCampSlapHealth, true);
-									}
-								}
-							} else {
-								CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "CAMP Warning Message", fAntiCampCalcTime);
-								EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
-							}
-						}
+			iClientButtons = GetClientButtons(client)
+			iFakeAnglesGet = (g_aPlayerCheks[client].fOldAngles[0] == fGetAngles[0] && g_aPlayerCheks[client].fOldAngles[1] == fGetAngles[1]) || (iClientButtons & (IN_LEFT|IN_RIGHT) != 0);
+			if (iFakeAnglesGet && (GetVectorDistance(g_aPlayerCheks[client].fOldPos, fGetPos) < g_aConVarlist.fAfkOriginThreshold) && (g_aConVarlist.iAfkFlagEnable != 2 || !(GetUserFlagBits(client) & g_aConVarlist.iAfkFlag))) {
+				g_aPlayerCheks[client].fAfkCheckTime += g_aConVarlist.fCalcTime;
+				fAfkCalcTime = g_aConVarlist.fAfkMove - g_aPlayerCheks[client].fAfkCheckTime;
+				if(fAfkCalcTime <= g_aConVarlist.fCalcTimeWarn) {
+					if(g_aPlayerCheks[client].fAfkCheckTime >= g_aConVarlist.fAfkMove) {
+						CPrintToChatAll("%s%t", g_aConVarlist.szTag, "AFK Announce Spec", client);
+						if(g_aConVarlist.iAfkKillEnable || GetPlayerCountEx(client, true, true, true) == 1)
+							ForcePlayerSuicide(client); // round end fix
+						ChangeClientTeam(client, CS_TEAM_SPECTATOR);
 					} else {
+						CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "AFK Warning Spec", fAfkCalcTime);
+						EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
 						g_aPlayerCheks[client].fAntiCampCheckTime = 0.0;
 					}
 				}
+			} else {
+				g_aPlayerCheks[client].fAfkCheckTime = 0.0;
+			}
 
-			} else if (GetClientTeam(client) <= CS_TEAM_SPECTATOR && (!g_aConVarlist.iAfkFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iAfkFlag)) && GetPlayerCountEx(client, false, false, false) >= g_aConVarlist.iAfkKickMin) {
-				g_aPlayerCheks[client].fAfkCheckTime += g_aConVarlist.fCalcTime;
-				fAfkCalcTime = g_aConVarlist.fAfkKick - g_aPlayerCheks[client].fAfkCheckTime;
-				if(fAfkCalcTime <= g_aConVarlist.fCalcTimeWarn) {
-					if(g_aPlayerCheks[client].fAfkCheckTime >= g_aConVarlist.fAfkKick) {
-						CPrintToChatAll("%s%t", g_aConVarlist.szTag, "AFK Announce Kick", client);
-						KickClientEx(client, "%t", "AFK Message Kick");
-					} else {
-						CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "AFK Warning Kick", fAfkCalcTime);
-						EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
+			if (g_aConVarlist.bAntiCampEnable && g_aPlayerCheks[client].fAfkCheckTime == 0.0 && (!g_aConVarlist.bAntiCampInSpeed || !(iClientButtons & IN_SPEED)) && (!g_aConVarlist.bAntiCampFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iAntiCampFlag)) && (!g_aConVarlist.bAntiCampMatchmaking || (GetClientTeam(client) == (g_aOtherVals.bSwapCampTeam ? CS_TEAM_CT : CS_TEAM_T)))) {
+				int iActWeapon;
+				if ((GetVectorDistance(g_aPlayerCheks[client].fOldPos, fGetPos) < g_aConVarlist.fAntiCampRadius) && (!g_aConVarlist.bAntiCampUncheckKnife || (IsValidEntity(iActWeapon = GetEntDataEnt2(client, g_aOtherVals.m_hActiveWeapon)) && !IsWeaponKnife(iActWeapon)))) {
+					g_aPlayerCheks[client].fAntiCampCheckTime += g_aConVarlist.fCalcTime;
+					fAntiCampCalcTime = g_aConVarlist.fAntiCampInterval - g_aPlayerCheks[client].fAntiCampCheckTime;
+					if(fAntiCampCalcTime <= g_aConVarlist.fCalcTimeWarn) {
+						if(g_aPlayerCheks[client].fAntiCampCheckTime >= g_aConVarlist.fAntiCampInterval) {
+							if(GetClientHealth(client) >= g_aConVarlist.iAntiCampMinHealth) {
+								switch(g_aConVarlist.iAntiCampPunishment) {
+									case 0: {
+										Client_ScreenFade(client, RoundToFloor(g_aConVarlist.fCalcTime*1000), FFADE_IN, 0, 66, 105, 158, 210);
+										CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "CAMP Fade Punished Message", g_aConVarlist.fAntiCampRadius);
+									}
+									case 1:	ForcePlayerSuicide(client);
+									case 2:	SlapPlayer(client, g_aConVarlist.iAntiCampSlapHealth, true);
+								}
+							}
+						} else {
+							CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "CAMP Warning Message", fAntiCampCalcTime);
+							EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
+						}
 					}
+				} else {
+					g_aPlayerCheks[client].fAntiCampCheckTime = 0.0;
 				}
 			}
 
-			if(g_aConVarlist.bPingCheckEnable && (!g_aConVarlist.bPingFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iPingFlag))) {
-				float fLatency = GetClientAvgLatency(client, NetFlow_Outgoing), fTickRate = GetTickInterval();
-				char sClientCmdRate[4];
-				GetClientInfo(client, "cl_cmdrate", sClientCmdRate, sizeof(sClientCmdRate));
-				int iCmdRate = StringToInt(sClientCmdRate);
-
-				if(iCmdRate < 20)
-					iCmdRate = 20;
-
-				fLatency -= ((0.5/iCmdRate) + (fTickRate * 1.0));
-				fLatency -= (fTickRate * 0.5);
-				fLatency *= 1000.0;
-				g_aPlayerCheks[client].iPingClient = RoundToZero(fLatency);
-				if(g_aPlayerCheks[client].iPingClient > g_aConVarlist.iPingMaxPing) {
-					g_aPlayerCheks[client].iPingCheckFail++;
-					if(g_aPlayerCheks[client].iPingCheckFail >= g_aConVarlist.iPingChecks) {
-						CPrintToChatAll("%s%t", g_aConVarlist.szTag, "PING Announce Kick", client, g_aPlayerCheks[client].iPingClient, g_aConVarlist.iPingMaxPing);
-						KickClientEx(client, "%t", "PING Message Kick", g_aPlayerCheks[client].iPingClient, g_aConVarlist.iPingMaxPing);
-					}
+		} else if (IsValidClient(client) && GetClientTeam(client) <= CS_TEAM_SPECTATOR && (!g_aConVarlist.iAfkFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iAfkFlag)) && GetPlayerCountEx(client, false, false, false) >= g_aConVarlist.iAfkKickMin) {
+			g_aPlayerCheks[client].fAfkCheckTime += g_aConVarlist.fCalcTime;
+			fAfkCalcTime = g_aConVarlist.fAfkKick - g_aPlayerCheks[client].fAfkCheckTime;
+			if(fAfkCalcTime <= g_aConVarlist.fCalcTimeWarn) {
+				if(g_aPlayerCheks[client].fAfkCheckTime >= g_aConVarlist.fAfkKick) {
+					CPrintToChatAll("%s%t", g_aConVarlist.szTag, "AFK Announce Kick", client);
+					KickClientEx(client, "%t", "AFK Message Kick");
 				} else {
-					if(g_aPlayerCheks[client].iPingCheckFail > 0)
-						g_aPlayerCheks[client].iPingCheckFail--;
+					CPrintToChat(client, "%s%t", g_aConVarlist.szTag, "AFK Warning Kick", fAfkCalcTime);
+					EmitSoundToClient(client, g_aConVarlist.szSoundWarn, SOUND_FROM_PLAYER, SNDCHAN_BODY, 0, SND_NOFLAGS, 1.0, 100, _, NULL_VECTOR, NULL_VECTOR, true);
 				}
+			}
+		}
+
+		if(IsValidClient(client) && g_aConVarlist.bPingCheckEnable && (!g_aConVarlist.bPingFlagEnable || !(GetUserFlagBits(client) & g_aConVarlist.iPingFlag))) {
+			float fLatency = GetClientAvgLatency(client, NetFlow_Outgoing), fTickRate = GetTickInterval();
+			char sClientCmdRate[4];
+			GetClientInfo(client, "cl_cmdrate", sClientCmdRate, sizeof(sClientCmdRate));
+			int iCmdRate = StringToInt(sClientCmdRate);
+
+			if(iCmdRate < 20)
+				iCmdRate = 20;
+
+			fLatency -= ((0.5/iCmdRate) + (fTickRate * 1.0));
+			fLatency -= (fTickRate * 0.5);
+			fLatency *= 1000.0;
+			g_aPlayerCheks[client].iPingClient = RoundToZero(fLatency);
+			if(g_aPlayerCheks[client].iPingClient > g_aConVarlist.iPingMaxPing) {
+				g_aPlayerCheks[client].iPingCheckFail++;
+				if(g_aPlayerCheks[client].iPingCheckFail >= g_aConVarlist.iPingChecks) {
+					CPrintToChatAll("%s%t", g_aConVarlist.szTag, "PING Announce Kick", client, g_aPlayerCheks[client].iPingClient, g_aConVarlist.iPingMaxPing);
+					KickClientEx(client, "%t", "PING Message Kick", g_aPlayerCheks[client].iPingClient, g_aConVarlist.iPingMaxPing);
+				}
+			} else {
+				if(g_aPlayerCheks[client].iPingCheckFail > 0)
+					g_aPlayerCheks[client].iPingCheckFail--;
 			}
 		}
 	}
