@@ -63,7 +63,7 @@ public Plugin myinfo =  {
 	name = "Player checker afk/ping/camp (mmcs.pro)",
 	author = "SAZONISCHE",
 	description = "",
-	version = "3.5",
+	version = "3.6",
 	url = "mmcs.pro",
 };
 
