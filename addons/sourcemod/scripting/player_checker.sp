@@ -378,18 +378,24 @@ stock bool IsWeaponKnife(int iWeapon) {
 }
 
 stock bool Client_ScreenFade(int client, int duration, int mode, int holdtime=-1, int r=0, int g=0, int b=0, int a=255, bool reliable=true) {
-	Handle userMessage = StartMessageOne("Fade", client, (reliable?USERMSG_RELIABLE:0));
-
-	if (userMessage == INVALID_HANDLE)
-		return false;
-
 	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available && GetUserMessageType() == UM_Protobuf) {
 		int color[4]; color[0] = r; color[1] = g; color[2] = b; color[3] = a;
-		PbSetInt(userMessage,   "duration",   duration);
-		PbSetInt(userMessage,   "hold_time",  holdtime);
-		PbSetInt(userMessage,   "flags",      mode);
-		PbSetColor(userMessage, "clr",        color);
+		Protobuf userMessage = view_as<Protobuf>(StartMessageOne("Fade", client, (reliable ? USERMSG_RELIABLE : 0)));
+		
+		if(userMessage == null) 
+			return false;
+
+		userMessage.SetInt("duration", duration); 
+		userMessage.SetInt("hold_time", holdtime); 
+		userMessage.SetInt("flags", mode); 
+		userMessage.SetColor("clr", color); 
+		EndMessage();
 	} else {
+		Handle userMessage = StartMessageOne("Fade", client, (reliable ? USERMSG_RELIABLE : 0));
+
+		if (userMessage == INVALID_HANDLE)
+			return false;
+
 		BfWriteShort(userMessage,	duration);	// Fade duration
 		BfWriteShort(userMessage,	holdtime);	// Fade hold time
 		BfWriteShort(userMessage,	mode);		// What to do
@@ -397,7 +403,7 @@ stock bool Client_ScreenFade(int client, int duration, int mode, int holdtime=-1
 		BfWriteByte(userMessage,	g);			// Color G
 		BfWriteByte(userMessage,	b);			// Color B
 		BfWriteByte(userMessage,	a);			// Color Alpha
+		EndMessage();
 	}
-	EndMessage();
 	return true;
 }
